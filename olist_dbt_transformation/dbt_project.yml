@@ -26,13 +26,13 @@ models:
     staging:
       +schema: DBT_OLIST_STAGING
       +on_schema_change: append_new_columns
-      +materialized: "{{ 'incremental' if target.name == 'prod' else 'table' }}"
+      +materialized: "{{ 'incremental' if target == 'prod' else 'table' }}"
       +incremental_strategy: merge
       +contract:
         enforced: true
       +tags: ['staging']
       +pre-hook: |
-        {% if target.name == 'dev' %}
+        {% if target == 'dev' %}
           {{ log("Running in DEV mode - using sampled data", info=True) }}
         {% else %}
           {{ log("Running in PROD mode - using full data", info=True) }}
@@ -63,7 +63,7 @@ models:
 
     intermediate:
       +schema: dbt_olist_int
-      +materialized: "{{ 'incremental' if target.name == 'prod' else 'view' }}"
+      +materialized: "{{ 'incremental' if target == 'prod' else 'view' }}"
       +on_schema_change: append_new_columns
       +tags: ['intermediate']
       
@@ -93,7 +93,7 @@ models:
 
     marts:
       +schema: dbt_olist_marts
-      +materialized: "{{ 'table' if target.name == 'prod' else 'view' }}"
+      +materialized: "{{ 'table' if target == 'prod' else 'view' }}"
       +on_schema_change: append_new_columns 
       +tags: ['marts']
       
@@ -165,16 +165,16 @@ seeds:
     +schema: seeds
 
 on-run-start:
-  - "{{ log('=== Starting dbt run in ' ~ target.name ~ ' environment ===', info=True) }}"
+  - "{{ log('=== Starting dbt run in ' ~ target ~ ' environment ===', info=True) }}"
   - |
-    {% if target.name == 'prod' %}
+    {% if target == 'prod' %}
       {{ log('Production run: processing full datasets', info=True) }}
     {% else %}
       {{ log('Development run: using sampled data for faster iteration', info=True) }}
     {% endif %}
 
 on-run-end:
-  - "{{ log('Completed run in ' ~ target.name ~ ' environment', info=True) }}"
+  - "{{ log('Completed run in ' ~ target ~ ' environment', info=True) }}"
 
       
 vars:
