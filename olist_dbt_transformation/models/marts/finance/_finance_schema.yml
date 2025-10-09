@@ -103,7 +103,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['credit_card', 'debit_card', 'boleto', 'voucher']
+                values: ['credit_card', 'debit_card', 'boleto', 'voucher', 'pix', 'not_defined']
       - name: payment_method_category
         data_type: varchar
       - name: installment_category
