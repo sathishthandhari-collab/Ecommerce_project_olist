@@ -2,30 +2,24 @@ olist_dbt_transformation:
   outputs:
     dev:
       type: snowflake
-      account: JVQRMFM-GKB40702
-      user: sathishthandhari
-      password: 7412369A@snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
       warehouse: projects
       database: olist_dev
       schema: dbt_olist_staging
-      role: accountadmin 
+      role: accountadmin
       threads: 8
-
+    
     prod:
       type: snowflake
-      account: JVQRMFM-GKB40702
-      user: sathishthandhari
-      password: 7412369A@snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
       warehouse: projects
       database: olist_prod
       schema: staging
-      role: accountadmin 
+      role: accountadmin
       threads: 8
   
   target: dev
-      
-      
-      
-      
-      
-      
