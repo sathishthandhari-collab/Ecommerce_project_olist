@@ -40,11 +40,42 @@ jobs:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-      
-      - name: DBT Compile
+        
+      - name: DBT Compile (dev)
         run: |
           cd olist_dbt_transformation
           dbt compile --target dev --profiles-dir . --project-dir .
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      
+      - name: DBT Run (dev)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd olist_dbt_transformation
+          dbt run --target dev --profiles-dir . --project-dir .
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      
+      - name: DBT Test (dev)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd olist_dbt_transformation
+          dbt test --target dev --profiles-dir . --project-dir .
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+
+      
+      
+      - name: DBT Compile (prod)
+        run: |
+          cd olist_dbt_transformation
+          dbt compile --target prod --profiles-dir . --project-dir .
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}

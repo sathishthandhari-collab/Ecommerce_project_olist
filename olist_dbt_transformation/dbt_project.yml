@@ -26,7 +26,7 @@ models:
     staging:
       +schema: DBT_OLIST_STAGING
       +on_schema_change: append_new_columns
-      +materialized: "{{ 'incremental' if target.name == 'prod' else 'table' }}"
+      +materialized: incremental
       +incremental_strategy: merge
       +contract:
         enforced: true
@@ -63,7 +63,7 @@ models:
 
     intermediate:
       +schema: dbt_olist_int
-      +materialized: "{{ 'incremental' if target.name == 'prod' else 'view' }}"
+      +materialized: incremental
       +on_schema_change: append_new_columns
       +tags: ['intermediate']
       
@@ -93,7 +93,7 @@ models:
 
     marts:
       +schema: dbt_olist_marts
-      +materialized: "{{ 'table' if target.name == 'prod' else 'view' }}"
+      +materialized: table
       +on_schema_change: append_new_columns 
       +tags: ['marts']
       
