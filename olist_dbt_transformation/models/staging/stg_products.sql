@@ -20,6 +20,9 @@ WITH source_data AS (
     SELECT * 
     FROM {{ source('src_olist_raw', 'raw_olist_products') }}
     WHERE product_id IN {{ get_related_product_ids() }}
+    {% if target.name == 'dev' %}
+    LIMIT {{ var('dev_sample_size') }}
+    {% endif %}
 ),
 
 -- Get statistical context for z-score calculations (need broader dataset)

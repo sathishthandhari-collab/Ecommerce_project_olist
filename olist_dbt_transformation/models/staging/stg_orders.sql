@@ -18,9 +18,14 @@
 WITH source_data AS (
     SELECT * 
     FROM {{ source('src_olist_raw', 'raw_olist_orders') }}
+    {% if target.name == 'dev' %}
+    LIMIT {{ var('dev_sample_size') }}
+    {% endif %}
+    
     {% if is_incremental() %}
         WHERE _loaded_at > (SELECT MAX(ingestion_loaded_at) FROM {{ this }})
     {% endif %}
+    
 ),
 
 enhanced_orders AS (
