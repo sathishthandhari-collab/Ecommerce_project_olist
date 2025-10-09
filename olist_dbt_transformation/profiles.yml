@@ -9,7 +9,7 @@ olist_dbt_transformation:
       database: olist_dev
       schema: dbt_olist_staging
       role: accountadmin
-      threads: 8
+      threads: 4
     
     prod:
       type: snowflake

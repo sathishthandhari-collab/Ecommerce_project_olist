@@ -18,9 +18,6 @@
 WITH source_data AS (
     SELECT * FROM {{ source('src_olist_raw', 'raw_olist_sellers') }}
     where seller_id in {{get_related_seller_ids()}}
-    {% if target.name == 'dev' %}
-    LIMIT {{ var('dev_sample_size') }}
-    {% endif %}
 ),
 
 enhanced_sellers AS (
@@ -112,3 +109,6 @@ final AS (
 )
 
 SELECT * FROM final
+    {% if target.name == 'dev' %}
+        LIMIT {{ var('dev_sample_size') }}
+    {% endif %}
