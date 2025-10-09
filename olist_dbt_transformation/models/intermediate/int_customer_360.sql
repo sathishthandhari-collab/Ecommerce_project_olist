@@ -201,3 +201,6 @@ final_customer_360 AS (
 )
 
 SELECT * FROM final_customer_360
+{% if target.name == 'dev' %}
+    LIMIT {{ var('dev_sample_size_agg') }}
+{% endif %}

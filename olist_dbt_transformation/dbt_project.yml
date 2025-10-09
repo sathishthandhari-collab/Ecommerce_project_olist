@@ -181,6 +181,7 @@ vars:
 
    # Dev uses sampled data
   dev_sample_size: 10000
+  dev_sample_size_agg: 1000
   # Prod uses full data
   prod_full_refresh: true
 

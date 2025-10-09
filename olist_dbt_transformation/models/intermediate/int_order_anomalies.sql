@@ -266,3 +266,6 @@ final AS (
 )
 
 SELECT * FROM final
+{% if target.name == 'dev' %}
+    LIMIT {{ var('dev_sample_size_agg') }}
+{% endif %}
