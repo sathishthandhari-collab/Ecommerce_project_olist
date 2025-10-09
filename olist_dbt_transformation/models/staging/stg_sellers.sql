@@ -1,6 +1,7 @@
 -- depends_on: {{ ref('stg_order_items') }}
 {{ config(
     materialized='incremental',
+    schema='DBT_OLIST_STAGING',
     on_schema_change='append_new_columns',
     tags=['staging']
 ) }}

@@ -1,8 +1,8 @@
 {{ config(
-  materialized='table',
-  schema='DBT_MONITORING',
-  alias='DBT_RUN_COSTS',
-  contract={"enforced": false}
+    materialized='table',
+    schema='DBT_MONITORING',
+    alias='DBT_RUN_COSTS',
+    contract={"enforced": false}
 ) }}
 
 with template as (

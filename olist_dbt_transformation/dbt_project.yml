@@ -20,19 +20,19 @@ clean-targets:
 
 models:
   olist_dbt_transformation:
-    +post-hook: "{{ capture_run_costs() }}"
+    # +post-hook: "{{ capture_run_costs() }}"
 
 
     staging:
       +schema: DBT_OLIST_STAGING
       +on_schema_change: append_new_columns
-      +materialized: "{{ 'incremental' if target == 'prod' else 'table' }}"
+      +materialized: "{{ 'incremental' if target.name == 'prod' else 'table' }}"
       +incremental_strategy: merge
       +contract:
         enforced: true
       +tags: ['staging']
       +pre-hook: |
-        {% if target == 'dev' %}
+        {% if target.name == 'dev' %}
           {{ log("Running in DEV mode - using sampled data", info=True) }}
         {% else %}
           {{ log("Running in PROD mode - using full data", info=True) }}
@@ -63,29 +63,29 @@ models:
 
     intermediate:
       +schema: dbt_olist_int
-      +materialized: "{{ 'incremental' if target == 'prod' else 'view' }}"
+      +materialized: "{{ 'incremental' if target.name == 'prod' else 'view' }}"
       +on_schema_change: append_new_columns
       +tags: ['intermediate']
       
       # Performance optimized intermediate models
       int_customer_360:
-        # +materialized: incremental
+        +materialized: incremental
         +unique_key: customer_sk
         +incremental_strategy: delete+insert
         +schema: dbt_olist_int
         +cluster_by: ['customer_state', 'lifecycle_stage']
       int_customer_lifetime_value:
-        # +materialized: incremental
+        +materialized: incremental
         +unique_key: 'customer_sk'
         +incremental_strategy: delete+insert
         +cluster_by: ['clv_segment', 'customer_state']
       int_order_anomalies:
-        # +materialized: incremental
+        +materialized: incremental
         +unique_key: 'order_sk'
         +incremental_strategy: delete+insert
         +cluster_by: ['anomaly_date', 'anomaly_severity']
       int_seller_health_score:
-        # +materialized: incremental
+        +materialized: incremental
         +unique_key: 'seller_sk'
         +incremental_strategy: delete+insert
         +cluster_by: ['health_tier', 'seller_state']
@@ -93,7 +93,7 @@ models:
 
     marts:
       +schema: dbt_olist_marts
-      +materialized: "{{ 'table' if target == 'prod' else 'view' }}"
+      +materialized: "{{ 'table' if target.name == 'prod' else 'view' }}"
       +on_schema_change: append_new_columns 
       +tags: ['marts']
       
@@ -167,7 +167,7 @@ seeds:
 on-run-start:
   - "{{ log('=== Starting dbt run in ' ~ target ~ ' environment ===', info=True) }}"
   - |
-    {% if target == 'prod' %}
+    {% if target.name == 'prod' %}
       {{ log('Production run: processing full datasets', info=True) }}
     {% else %}
       {{ log('Development run: using sampled data for faster iteration', info=True) }}
