@@ -1,0 +1,233 @@
+version: 2
+
+models:
+  - name: mart_financial_performance
+    description: "Comprehensive financial performance analytics for CFO dashboard"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: report_date
+        data_type: date
+        tests:
+          - not_null
+      - name: report_year
+        data_type: number
+      - name: report_month
+        data_type: number
+      - name: report_quarter
+        data_type: number
+      - name: is_weekend
+        data_type: boolean
+      - name: reporting_period
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Weekly', 'Monthly']
+      - name: financial_category
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Financial Performance', 'Financial Forecasting']
+      - name: metric_subcategory
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Revenue Performance', 'Revenue Forecasting']
+      - name: metric_name
+        data_type: varchar
+        tests:
+          - not_null
+      - name: metric_description
+        data_type: varchar
+      - name: metric_value
+        data_type: float
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+      - name: period_over_period_change
+        data_type: float
+      - name: period_over_period_change_pct
+        data_type: float
+        description: "Percentage change from previous period"
+      - name: forecast_value
+        data_type: float
+      - name: supporting_volume
+        data_type: number
+      - name: supporting_count
+        data_type: number
+      - name: performance_category
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Exceptional Growth', 'Strong Growth', 'Moderate Growth', 'Stable Performance', 'Declining Performance', 'Critical Decline']
+      - name: executive_alert
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['NORMAL', 'REVENUE DECLINE ALERT', 'CRITICAL: NO REVENUE', 'INVESTIGATE: UNUSUAL GROWTH']
+      - name: trend_direction
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Accelerating', 'Growing', 'Flat', 'Declining']
+      - name: data_confidence_level
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['High Confidence', 'Medium Confidence', 'Low Confidence', 'Insufficient Data']
+      - name: last_updated
+        data_type: timestamp_tz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: mart_payment_method_performance
+    description: "Payment method analytics for finance and risk management"
+    columns:
+      - name: report_date
+        data_type: date
+        tests:
+          - not_null
+      - name: payment_method
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['credit_card', 'debit_card', 'boleto', 'voucher']
+      - name: payment_method_category
+        data_type: varchar
+      - name: installment_category
+        data_type: varchar
+      - name: orders_count
+        data_type: number
+        tests:
+          - not_null
+      - name: total_payment_volume
+        data_type: float
+        tests:
+          - not_null
+      - name: avg_payment_value
+        data_type: float
+      - name: avg_installments
+        data_type: float
+      - name: long_term_financing_volume
+        data_type: float
+      - name: high_risk_volume
+        data_type: float
+      - name: risk_percentage
+        data_type: float
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: critical_anomaly_orders
+        data_type: number
+      - name: anomaly_rate_pct
+        data_type: float
+      - name: market_share_pct
+        data_type: float
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: prev_month_volume
+        data_type: float
+      - name: mom_growth_pct
+        data_type: float
+      - name: payment_method_health
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Excellent', 'Good', 'Average', 'Needs Attention']
+      - name: last_updated
+        data_type: timestamp_tz
+
+  - name: mart_unit_economics
+    description: "Unit economics analysis by customer segment and region"
+    columns:
+      - name: report_date
+        data_type: date
+        tests:
+          - not_null
+      - name: customer_segment
+        data_type: varchar
+      - name: region
+        data_type: varchar
+      - name: clv_segment
+        data_type: varchar
+      - name: orders
+        data_type: number
+        tests:
+          - not_null
+      - name: unique_customers
+        data_type: number
+        tests:
+          - not_null
+      - name: gross_revenue
+        data_type: float
+        tests:
+          - not_null
+      - name: shipping_revenue
+        data_type: float
+      - name: avg_order_value
+        data_type: float
+      - name: revenue_per_customer
+        data_type: float
+      - name: avg_predicted_clv
+        data_type: float
+      - name: avg_churn_risk
+        data_type: float
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: estimated_commission_revenue
+        data_type: float
+      - name: estimated_shipping_margin
+        data_type: float
+      - name: estimated_gross_profit
+        data_type: float
+      - name: new_customers_acquired
+        data_type: number
+      - name: profit_per_order
+        data_type: float
+        description: "Estimated gross profit per order"
+        tests:
+          - not_null
+      - name: profit_per_customer
+        data_type: float
+      - name: gross_margin_pct
+        data_type: float
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: estimated_lifetime_commission_per_customer
+        data_type: float
+      - name: estimated_payback_months
+        data_type: float
+      - name: profitability_rank
+        data_type: number
+      - name: profitability_segment
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['High Value', 'Medium Value', 'Low Value', 'Unprofitable']
+      - name: last_updated
+        data_type: timestamp_tz

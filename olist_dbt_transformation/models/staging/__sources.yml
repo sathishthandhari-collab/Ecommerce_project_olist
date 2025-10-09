@@ -1,0 +1,155 @@
+version: 2
+
+sources:
+  - name: src_olist_raw
+    description: "Raw Olist ecommerce data from S3/Snowpipe ingestion"
+    database: olist_dev
+    schema: raw
+    config:
+      freshness:
+          warn_after: {count: 6, period: hour}
+          error_after: {count: 12, period: hour}
+    
+    # Source freshness monitoring
+    tables:
+      - name: raw_olist_orders
+        description: "Order header information"
+        config:
+          event_time: _loaded_at
+        columns:
+          - name: order_id
+            description: "Unique order identifier"
+            data_type: varchar
+          - name: customer_id  
+            description: "Customer identifier"
+            data_type: varchar
+          - name: order_status
+            description: "Current order status"
+            data_type: varchar
+          - name: order_purchase_timestamp
+            description: "Order purchase timestamp"
+            data_type: timestamp
+          - name: order_approved_at
+            description: "Order approval timestamp"  
+            data_type: timestamp
+          - name: order_delivered_carrier_date
+            description: "Handover to carrier timestamp"
+            data_type: timestamp
+          - name: order_delivered_customer_date
+            description: "Delivery to customer timestamp"
+            data_type: timestamp
+          - name: order_estimated_delivery_date
+            description: "Estimated delivery date"
+            data_type: timestamp
+
+      - name: raw_olist_order_items
+        description: "Order line items"
+        columns:
+          - name: order_id
+            data_type: varchar
+          - name: order_item_id
+            data_type: integer  
+          - name: product_id
+            data_type: varchar
+          - name: seller_id
+            data_type: varchar
+          - name: shipping_limit_date
+            data_type: timestamp
+          - name: price
+            data_type: decimal(10,2)
+          - name: freight_value
+            data_type: decimal(10,2)
+
+      - name: raw_olist_customers
+        description: "Customer information"
+        columns:
+          - name: customer_id
+            data_type: varchar
+          - name: customer_unique_id
+            data_type: varchar
+          - name: customer_zip_code_prefix
+            data_type: varchar
+          - name: customer_city
+            data_type: varchar
+          - name: customer_state
+            data_type: varchar
+
+      - name: raw_olist_products
+        description: "Product catalog"
+        columns:
+          - name: product_id
+            data_type: varchar
+          - name: product_category_name
+            data_type: varchar
+          - name: product_name_lenght
+            data_type: integer
+          - name: product_description_lenght  
+            data_type: integer
+          - name: product_photos_qty
+            data_type: integer
+          - name: product_weight_g
+            data_type: integer
+          - name: product_length_cm
+            data_type: integer
+          - name: product_height_cm
+            data_type: integer
+          - name: product_width_cm
+            data_type: integer
+
+      - name: raw_olist_sellers
+        description: "Seller information"
+        columns:
+          - name: seller_id
+            data_type: varchar
+          - name: seller_zip_code_prefix
+            data_type: varchar
+          - name: seller_city
+            data_type: varchar
+          - name: seller_state
+            data_type: varchar
+
+      - name: raw_olist_payments
+        description: "Payment transactions"
+        columns:
+          - name: order_id
+            data_type: varchar
+          - name: payment_sequential
+            data_type: integer
+          - name: payment_type
+            data_type: varchar
+          - name: payment_installments
+            data_type: integer
+          - name: payment_value
+            data_type: decimal(10,2)
+
+      - name: raw_olist_reviews
+        description: "Order reviews and ratings"
+        columns:
+          - name: review_id
+            data_type: varchar
+          - name: order_id
+            data_type: varchar
+          - name: review_score
+            data_type: integer
+          - name: review_comment_title
+            data_type: varchar
+          - name: review_comment_message
+            data_type: varchar
+          - name: review_creation_date
+            data_type: timestamp
+          - name: review_answer_timestamp
+            data_type: timestamp
+
+      - name: raw_olist_geolocation
+        description: "Geographic location data"
+        columns:
+          - name: geolocation_zip_code_prefix
+            data_type: varchar
+          - name: geolocation_lat
+            data_type: decimal(10,8)
+          - name: geolocation_lng
+            data_type: decimal(11,8)
+          - name: geolocation_city
+            data_type: varchar
+          - name: geolocation_state
+            data_type: varchar

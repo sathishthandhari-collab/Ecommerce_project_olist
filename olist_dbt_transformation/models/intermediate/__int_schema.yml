@@ -1,0 +1,426 @@
+version: 2
+
+models:
+  - name: int_customer_360
+    description: "Comprehensive customer analytics with behavioral scoring and lifecycle stages"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: customer_sk
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_type: varchar
+      - name: customer_state
+        data_type: varchar
+      - name: region
+        data_type: varchar
+      - name: state_tier
+        data_type: varchar
+      - name: total_orders
+        data_type: number
+      - name: total_spent
+        data_type: float
+      - name: avg_order_value
+        data_type: float
+      - name: order_value_volatility
+        data_type: float
+      - name: first_order_date
+        data_type: timestamp_ntz
+      - name: last_order_date
+        data_type: timestamp_ntz
+      - name: customer_lifespan_days
+        data_type: number
+      - name: days_since_last_order
+        data_type: number
+      - name: avg_days_between_orders
+        data_type: number
+      - name: on_time_delivery_rate
+        data_type: float
+      - name: avg_delivery_days
+        data_type: number
+      - name: avg_installments
+        data_type: number
+      - name: payment_methods_used
+        data_type: number
+      - name: high_risk_payments
+        data_type: number
+      - name: categories_purchased
+        data_type: number
+      - name: sellers_used
+        data_type: number
+      - name: reviews_given
+        data_type: number
+      - name: avg_review_score
+        data_type: number
+      - name: detailed_reviews_count
+        data_type: number
+      - name: recency_score
+        data_type: number
+      - name: frequency_score
+        data_type: number
+      - name: monetary_score
+        data_type: number
+      - name: engagement_level
+        data_type: varchar
+      - name: customer_sophistication
+        data_type: varchar
+      - name: customer_risk_level
+        data_type: varchar
+      - name: delivery_experience_quality
+        data_type: varchar
+      - name: lifecycle_stage
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Champion', 'Loyal Customer', 'Potential Loyalist', 'New Customer', 
+                        'Recent Customer', 'At Risk', 'Cannot Lose Them', 'Lost Customer']
+      - name: churn_probability
+        data_type: float
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: predicted_next_purchase_date
+        data_type: timestamp_ntz
+      - name: has_volatile_spending
+        data_type: boolean
+      - name: high_frequency_customer
+        data_type: boolean
+      - name: dbt_loaded_at
+        data_type: timestamp_tz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: int_customer_lifetime_value
+    description: "Customer lifetime value predictions with confidence intervals"
+    tests:
+      - expect_column_pair_values_A_to_be_smaller_than_B:
+          arguments:
+            column_A: clv_lower_bound
+            column_B: clv_upper_bound
+            or_equal: true
+      - expect_column_pair_values_A_to_be_smaller_than_B:
+          arguments:
+            column_A: clv_lower_bound
+            column_B: predicted_clv
+            or_equal: true
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: customer_sk
+        data_type: varchar
+        tests:
+          - expect_foreign_key_relationships_with_context:
+              arguments:
+                to: ref('int_customer_360')
+                field: customer_sk
+                context_columns: ['customer_state', 'region']
+          - unique
+          - not_null
+      - name: customer_id
+        data_type: varchar
+      - name: customer_state
+        data_type: varchar
+      - name: region
+        data_type: varchar
+      - name: total_orders
+        data_type: number
+      - name: historical_clv
+        data_type: float
+      - name: avg_order_value
+        data_type: float
+      - name: annual_purchase_frequency
+        data_type: float
+      - name: predicted_clv
+        description: "Predicted customer lifetime value"
+        data_type: float
+        # tests:
+        #   - expect_z_score_within:
+        #       arguments:
+        #         threshold: 5
+          # - dbt_utils.accepted_range:
+          #     arguments:
+          #       min_value: 0
+          #       max_value: 50000
+      - name: clv_lower_bound
+        data_type: float
+      - name: clv_upper_bound
+        data_type: float
+      - name: clv_standard_error
+        data_type: float
+      - name: clv_segment
+        description: "CLV-based customer segment"
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Very High Value', 'High Value', 'Medium Value', 'Low Value', 'Very Low Value']
+      - name: prediction_confidence
+        data_type: varchar
+      - name: growth_potential
+        data_type: varchar
+      - name: investment_priority
+        data_type: varchar
+      - name: estimated_lifetime_days
+        data_type: float
+      - name: churn_probability
+        data_type: float
+      - name: dbt_loaded_at
+        data_type: timestamp_tz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: int_order_anomalies
+    description: "Multi-dimensional order anomaly detection with severity classification" 
+    # tests:
+    #   - dbt_utils.equal_rowcount:
+    #         arguments:
+    #           compare_model: ref('stg_orders')
+    #           compare_condition: "WHERE composite_anomaly_score >= 1.0" 
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: order_sk
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        data_type: varchar
+      - name: customer_id
+        data_type: varchar
+        # tests:
+        #   - expect_foreign_key_relationships_with_context:
+        #       arguments:
+        #         to: ref('stg_customers')  
+        #         field: customer_id
+        #         context_columns: ['region', 'anomaly_severity']
+      - name: order_purchase_timestamp
+        data_type: timestamp_ntz
+      - name: order_status
+        data_type: varchar
+      - name: ANOMALY_DATE
+        data_type: date
+
+      - name: total_order_value
+        data_type: float
+      - name: unique_products
+        data_type: number
+      - name: unique_sellers
+        data_type: number
+      - name: delivery_days
+        data_type: number
+      - name: customer_order_count
+        data_type: number
+      - name: composite_anomaly_score
+        data_type: float
+        # tests:
+          # - expect_z_score_within:
+          #     arguments:
+          #       threshold: 5
+          # - dbt_utils.accepted_range:
+          #     arguments:
+          #       min_value: 0
+          #       max_value: 10
+      - name: order_value_z_score
+        data_type: float
+      - name: product_count_z_score
+        data_type: float
+      - name: customer_behavior_deviation
+        data_type: float
+      - name: anomaly_severity
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Normal', 'Low', 'Medium', 'High', 'Critical']
+      - name: anomaly_type
+        data_type: varchar
+      - name: business_impact
+        data_type: varchar
+      - name: recommended_action
+        data_type: varchar
+      - name: is_value_anomaly
+        data_type: boolean
+      - name: is_complexity_anomaly
+        data_type: boolean
+      - name: is_delivery_anomaly
+        data_type: boolean
+      - name: is_customer_behavior_anomaly
+        data_type: boolean
+      - name: is_unusual_time
+        data_type: boolean
+      - name: is_weekend_order
+        data_type: boolean
+      - name: region
+        data_type: varchar
+      - name: customer_risk_level
+        data_type: varchar
+      - name: dbt_loaded_at
+        data_type: timestamp_tz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: int_seller_health_score
+    description: "Comprehensive seller performance scoring with health tiers"
+    config:
+      contract:
+        enforced: true  
+    columns:
+      - name: seller_sk
+        data_type: varchar
+        tests:
+          - expect_foreign_key_relationships_with_context:
+              arguments:
+                to: ref('stg_sellers')
+                field: seller_sk
+                context_columns: ['seller_state', 'health_tier']
+      - name: seller_id
+        data_type: varchar
+      - name: seller_state
+        data_type: varchar
+      - name: seller_city
+        data_type: varchar
+      - name: geographic_region
+        data_type: varchar
+      - name: business_environment_score
+        data_type: number
+      - name: has_logistics_advantage
+        data_type: boolean
+      - name: total_orders
+        data_type: number
+      - name: total_gmv
+        data_type: float
+      - name: unique_customers
+        data_type: number
+      - name: unique_products_sold
+        data_type: number
+      - name: seller_tenure_days
+        data_type: number
+      - name: days_since_last_order
+        data_type: number
+      - name: on_time_delivery_rate
+        data_type: number
+      - name: avg_delivery_days
+        data_type: float
+      - name: avg_review_score
+        data_type: float
+      - name: customer_satisfaction_rate
+        data_type: number
+      - name: delivery_performance_score
+        data_type: float
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:  
+                min_value: 0
+                max_value: 100
+                strictly: false
+      - name: customer_satisfaction_score
+        data_type: float
+      - name: order_volume_score
+        data_type: float
+      - name: quality_score
+        data_type: float
+      - name: composite_health_score
+        description: "Weighted composite health score (0-100)"
+        data_type: float
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+          # - expect_z_score_within:
+          #     arguments:
+          #       threshold: 5
+          #       partition_by: ['seller_state']
+          #       min_rows: 30
+      - name: health_tier
+        description: "Health tier classification"
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Excellent', 'Good', 'Average', 'Below Average', 'Poor']
+      - name: primary_risk_factor
+        data_type: varchar
+      - name: growth_trajectory
+        data_type: varchar
+      - name: recommended_action
+        data_type: varchar
+      - name: dbt_loaded_at
+        data_type: timestamp_tz
+      - name: dbt_invocation_id
+        data_type: varchar
+# snapshots:
+#   - name: snap_dim_customer
+#     description: "Customer dimension with SCD Type 2 tracking"
+#     tests:
+#       - dbt_utils.unique_combination_of_columns:
+#           arguments:
+#             combination_of_columns:
+#               - customer_sk
+#               - dbt_valid_from
+#     columns:
+#       - name: customer_sk
+#         tests:
+#           - not_null
+#       - name: dbt_valid_from  
+#         tests:
+#           - not_null
+#       - name: dbt_valid_to
+#         tests:
+#           - dbt_utils.expression_is_true:
+#               arguments:
+#                 expression: "dbt_valid_to IS NULL OR dbt_valid_to > dbt_valid_from"
+              
+#   - name: snap_dim_seller
+#     description: "Seller dimension with SCD Type 2 tracking"
+#     tests:
+#       - dbt_utils.unique_combination_of_columns:
+#           arguments:
+#             combination_of_columns:
+#               - seller_sk  
+#               - dbt_valid_from
+#     columns:
+#       - name: seller_sk
+#         tests:
+#           - not_null
+#       - name: business_environment_score
+#         tests:
+#           # - expect_z_score_within:
+#           #     arguments:
+#           #       threshold: 3
+#           - dbt_utils.accepted_range:
+#               arguments:
+#                 min_value: 1
+#                 max_value: 5
+              
+#   - name: snap_dim_product
+#     description: "Product dimension with SCD Type 2 tracking"
+#     tests:
+#       - dbt_utils.unique_combination_of_columns:
+#           arguments:
+#             combination_of_columns:
+#               - product_sk
+#               - dbt_valid_from
+#     columns:
+#       - name: product_sk
+#         tests:
+#           - not_null
+#       - name: product_weight_g
+#         tests:
+          # - expect_z_score_within:
+          #     arguments:
+          #       threshold: 4

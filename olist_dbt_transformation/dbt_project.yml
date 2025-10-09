@@ -1,0 +1,216 @@
+name: 'olist_dbt_transformation'
+profile: 'olist_dbt_transformation'
+version: '1.0.0'
+config-version: 2
+
+dbt-cloud:
+    project-id: 70471823511878
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  olist_dbt_transformation:
+    +post-hook: "{{ capture_run_costs() }}"
+
+
+    staging:
+      +schema: DBT_OLIST_STAGING
+      +on_schema_change: append_new_columns
+      +materialized: "{{ 'incremental' if target.name == 'prod' else 'table' }}"
+      +incremental_strategy: merge
+      +contract:
+        enforced: true
+      +tags: ['staging']
+      +pre-hook: |
+        {% if target.name == 'dev' %}
+          {{ log("Running in DEV mode - using sampled data", info=True) }}
+        {% else %}
+          {{ log("Running in PROD mode - using full data", info=True) }}
+        {% endif %}
+      # Specific configurations per model type
+      stg_orders:
+        +unique_key: 'order_sk'
+      stg_order_items:
+        +unique_key: 'order_item_sk'  
+      stg_payments:
+        +unique_key: 'payment_sk'
+      stg_reviews:
+        +unique_key: 'review_sk'
+      stg_customers:
+        +unique_key: 'customer_sk'
+        +materialized: incremental 
+      stg_products:
+        +unique_key: 'product_sk' 
+        +materialized: incremental 
+      stg_sellers:
+        +unique_key: 'seller_sk'
+        +materialized: incremental  
+      stg_geolocation:
+        +materialized: table 
+
+
+
+
+    intermediate:
+      +schema: dbt_olist_int
+      +materialized: "{{ 'incremental' if target.name == 'prod' else 'view' }}"
+      +on_schema_change: append_new_columns
+      +tags: ['intermediate']
+      
+      # Performance optimized intermediate models
+      int_customer_360:
+        # +materialized: incremental
+        +unique_key: customer_sk
+        +incremental_strategy: delete+insert
+        +schema: dbt_olist_int
+        +cluster_by: ['customer_state', 'lifecycle_stage']
+      int_customer_lifetime_value:
+        # +materialized: incremental
+        +unique_key: 'customer_sk'
+        +incremental_strategy: delete+insert
+        +cluster_by: ['clv_segment', 'customer_state']
+      int_order_anomalies:
+        # +materialized: incremental
+        +unique_key: 'order_sk'
+        +incremental_strategy: delete+insert
+        +cluster_by: ['anomaly_date', 'anomaly_severity']
+      int_seller_health_score:
+        # +materialized: incremental
+        +unique_key: 'seller_sk'
+        +incremental_strategy: delete+insert
+        +cluster_by: ['health_tier', 'seller_state']
+
+
+    marts:
+      +schema: dbt_olist_marts
+      +materialized: "{{ 'table' if target.name == 'prod' else 'view' }}"
+      +on_schema_change: append_new_columns 
+      +tags: ['marts']
+      
+      # Executive-level marts with contracts for BI stability
+      executive:
+        +contract:
+          enforced: true
+        +cluster_by: ['report_date']
+        mart_executive_kpis:
+          +materialized: table
+          +cluster_by: ['report_date', 'metric_category']
+        mart_customer_strategy:
+          +materialized: table
+          +cluster_by: ['report_date', 'clv_segment']
+          
+      # Operational marts for teams
+      operations:
+        mart_fraud_monitoring:
+          +materialized: incremental
+          +unique_key: 'alert_id'
+          +cluster_by: ['alert_date', 'anomaly_severity']
+        mart_seller_management:
+          +materialized: table
+          +cluster_by: ['health_tier', 'seller_state']
+        mart_logistics_performance:
+          +materialized: table
+          +cluster_by: ['report_date', 'region']
+      finance:
+        mart_financial_performance:
+          +materialized: table
+          +cluster_by: ['report_date', 'financial_category']
+        marts_payment_method_performance:
+          +materialized: table
+          +cluster_by: ['report_date', 'payment_method']
+        marts_unit_economics:
+          +materialized: table
+          +cluster_by: ['report_date', 'customer_segment']
+
+tests:
+  olist_dbt_transformation:
+    +store_failures: true
+    +severity: error
+    # Advanced test tags
+    generic:
+      expect_z_score_within:
+        +tags: ['advanced_testing', 'anomaly_detection']
+      expect_foreign_key_relationships_with_context:
+        +tags: ['advanced_testing', 'referential_integrity']
+      expect_column_pair_values_A_to_be_smaller_than_B:
+        +tags: ['advanced_testing', 'business_logic']
+
+snapshots:
+  olist_dbt_transformation:
+    +target_schema: dbt_snapshots
+    +strategy: check
+    +invalidate_hard_deletes: true
+    +tags: ['snapshots', 'scd_type_2']
+    
+    # Specific snapshot configurations
+    snap_dim_customer:
+      +enabled: true
+    snap_dim_seller:
+      +enabled: true  
+    snap_dim_product:
+      +enabled: true
+
+seeds:
+  olist_analytics:
+    +schema: seeds
+
+on-run-start:
+  - "{{ log('=== Starting dbt run in ' ~ target.name ~ ' environment ===', info=True) }}"
+  - |
+    {% if target.name == 'prod' %}
+      {{ log('Production run: processing full datasets', info=True) }}
+    {% else %}
+      {{ log('Development run: using sampled data for faster iteration', info=True) }}
+    {% endif %}
+
+on-run-end:
+  - "{{ log('Completed run in ' ~ target.name ~ ' environment', info=True) }}"
+
+      
+vars:
+
+   # Dev uses sampled data
+  dev_sample_size: 10000
+  # Prod uses full data
+  prod_full_refresh: true
+
+  # Processing mode controls
+  full_refresh_override: false
+  lookback_days: 7  # For safety, look back 7 days on incremental runs
+  
+  # Data quality thresholds
+  anomaly_z_score_threshold: 3
+  data_quality_min_score: 0.8
+
+  # Advanced analytics thresholds
+  clv_confidence_interval: 0.95
+  anomaly_z_threshold: 3.0
+  health_score_weights:
+    delivery_performance: 0.35
+    customer_satisfaction: 0.25  
+    order_volume: 0.20
+    quality_score: 0.20
+  
+  # Cohort analysis parameters
+  cohort_periods: 12
+  churn_threshold_days: 180
+
+   # Executive reporting parameters
+  executive_report_lookback_days: 90
+  kpi_trend_periods: 12
+  clv_confidence_threshold: 0.8
+  
+  # Alert thresholds
+  fraud_alert_threshold: 3.0
+  churn_risk_threshold: 0.7
+  health_score_alert_threshold: 35

@@ -1,0 +1,33 @@
+olist_dbt_transformation:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: JVQRMFM-GKB40702
+      user: sathishthandhari
+      password: 7412369A@snowflake
+      warehouse: projects
+      database: olist_dev
+      schema: dbt_olist_staging
+      role: accountadmin 
+      threads: 8
+      client_session_keep_alive: False
+
+    prod:
+      type: snowflake
+      account: JVQRMFM-GKB40702
+      user: sathishthandhari
+      password: 7412369A@snowflake
+      warehouse: projects
+      database: olist_prod
+      schema: staging
+      role: accountadmin 
+      threads: 8
+      client_session_keep_alive: False
+      query_tag: airflow_production
+      
+      
+      
+      
+      
+      

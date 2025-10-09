@@ -1,0 +1,421 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: "Cleaned and enhanced order data with data quality scoring"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: order_sk  
+        description: "Surrogate key for orders"
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: "Natural order identifier"
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_type: varchar
+      - name: order_status
+        data_type: varchar
+      - name: order_purchase_timestamp
+        data_type: timestamp_ntz
+      - name: order_approved_at
+        data_type: timestamp_ntz
+      - name: order_delivered_carrier_date
+        data_type: timestamp_ntz
+      - name: order_delivered_customer_date
+        data_type: timestamp_ntz
+      - name: order_estimated_delivery_date
+        data_type: timestamp_ntz
+      - name: delivery_days
+        data_type: number
+      - name: delivery_vs_estimate_days
+        data_type: number
+      - name: is_on_time_delivery
+        data_type: boolean
+      - name: is_cancelled
+        data_type: boolean
+      - name: data_quality_score
+        description: "Data quality score from 0-1"
+        data_type: number
+        tests:
+          - not_null
+          - accepted_values:
+              arguments: 
+                  values: [0.0, 0.14, 0.28, 0.43, 0.57, 0.71, 0.86, 1.0]
+                  quote: false
+      - name: ingestion_loaded_at
+        data_type: timestamp_ntz
+      - name: dbt_loaded_at
+        data_type: timestamp_ntz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: stg_order_items  
+    description: "Enhanced order items with anomaly detection"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: order_item_sk
+        data_type: varchar
+        tests:
+          - unique 
+          - not_null
+      - name: order_id
+        data_type: varchar
+      - name: order_item_id
+        data_type: varchar
+      - name: product_id
+        data_type: varchar
+      - name: seller_id
+        data_type: varchar
+      - name: item_price
+        data_type: decimal
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                # quote: false
+      - name: freight_value
+        data_type: decimal
+      - name: total_item_value
+        data_type: decimal
+      - name: shipping_limit_date
+        data_type: timestamp_ntz
+      - name: price_z_score
+        data_type: float
+      - name: freight_z_score
+        data_type: float
+      - name: is_free_item
+        data_type: boolean
+      - name: is_free_shipping
+        data_type: boolean
+      - name: is_price_anomaly
+        data_type: boolean
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+      - name: is_freight_anomaly
+        data_type: boolean
+      - name: data_quality_score
+        data_type: number
+      - name: dbt_loaded_at
+        data_type: timestamp_ntz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: stg_customers
+    description: "Standardized customer dimension"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: customer_sk
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_type: varchar
+      - name: customer_unique_id
+        data_type: varchar
+        tests:
+          - not_null
+      - name: customer_zip_code_prefix
+        data_type: varchar
+      - name: customer_city
+        data_type: varchar
+      - name: customer_state
+        data_type: varchar
+      - name: state_tier
+        data_type: varchar
+      - name: region
+        data_type: varchar
+      - name: valid_zip_format
+        data_type: boolean
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+      - name: valid_state_format
+        data_type: boolean
+      - name: data_quality_score
+        data_type: number
+      - name: dbt_loaded_at
+        data_type: timestamp_ntz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: stg_products
+    description: "Enhanced product catalog with calculated metrics"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: product_sk
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: product_id
+        data_type: varchar
+      - name: product_category_name
+        data_type: varchar
+        tests:
+          - not_null
+      - name: product_name_length
+        data_type: number
+      - name: product_description_length
+        data_type: number
+      - name: product_photos_qty
+        data_type: number
+      - name: product_weight_g
+        data_type: float
+      - name: product_length_cm
+        data_type: float
+      - name: product_height_cm
+        data_type: float
+      - name: product_width_cm
+        data_type: float
+      - name: product_volume_cubic_meters
+        data_type: float
+      - name: category_group
+        data_type: varchar
+      - name: weight_z_score
+        data_type: float
+      - name: photos_z_score
+        data_type: float
+      - name: in_current_batch
+        data_type: boolean
+      - name: is_bulky_item
+        data_type: boolean
+      - name: data_quality_score
+        data_type: number
+      - name: dbt_loaded_at
+        data_type: timestamp_ntz
+      - name: dbt_invocation_id
+        data_type: varchar
+      - name: has_complete_dimensions
+        data_type: boolean
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+
+  - name: stg_sellers
+    description: "Seller dimension with geographic analysis"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: seller_sk
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: seller_id
+        data_type: varchar
+      - name: seller_zip_code_prefix
+        data_type: varchar
+      - name: seller_city
+        data_type: varchar
+      - name: seller_state
+        data_type: varchar
+      - name: state_business_tier
+        data_type: varchar
+      - name: geographic_region
+        data_type: varchar
+      - name: market_size
+        data_type: varchar
+      - name: business_environment_score
+        data_type: number
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false
+      - name: has_logistics_advantage
+        data_type: boolean
+      - name: valid_zip_format
+        data_type: boolean
+      - name: valid_state_format
+        data_type: boolean
+      - name: data_quality_score
+        data_type: number
+      - name: dbt_loaded_at
+        data_type: timestamp_ntz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: stg_payments
+    description: "Payment transactions with risk assessment"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: payment_sk
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        data_type: varchar
+      - name: payment_sequential
+        data_type: number
+      - name: payment_type
+        data_type: varchar
+      - name: payment_installments
+        data_type: number
+      - name: payment_value
+        data_type: float
+      - name: payment_method_category
+        data_type: varchar
+      - name: installment_category
+        data_type: varchar
+      - name: payment_risk_category
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Low Risk', 'Medium Risk', 'High Risk']
+      - name: value_z_score_by_type
+        data_type: float
+      - name: installment_z_score
+        data_type: float
+      - name: installment_amount
+        data_type: float
+      - name: is_high_value_non_credit
+        data_type: boolean
+      - name: is_extreme_installments
+        data_type: boolean
+      - name: is_value_anomaly
+        data_type: boolean
+      - name: data_quality_score
+        data_type: number
+      - name: dbt_loaded_at
+        data_type: timestamp_ntz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: stg_reviews
+    description: "Customer reviews with sentiment analysis"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: review_sk
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: review_id
+        data_type: varchar
+      - name: order_id
+        data_type: varchar
+      - name: review_score
+        data_type: number
+      - name: review_creation_date
+        data_type: timestamp_ntz
+      - name: review_answer_timestamp
+        data_type: timestamp_ntz
+      - name: review_comment_title
+        data_type: varchar
+      - name: review_comment_message
+        data_type: varchar
+      - name: title_length
+        data_type: number
+      - name: message_length
+        data_type: number
+      - name: sentiment_category
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Positive', 'Neutral', 'Negative']
+      - name: comment_detail_level
+        data_type: varchar
+      - name: has_response
+        data_type: boolean
+      - name: response_time_hours
+        data_type: number
+      - name: is_comprehensive_review
+        data_type: boolean
+      - name: is_very_negative
+        data_type: boolean
+      - name: is_very_positive
+        data_type: boolean
+      - name: is_dissatisfied
+        data_type: boolean
+      - name: is_satisfied
+        data_type: boolean
+      - name: score_z_score
+        data_type: float
+      - name: data_quality_score
+        data_type: number
+      - name: dbt_loaded_at
+        data_type: timestamp_ntz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: stg_geolocation
+    description: "Geographic reference data with regional classification"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: geo_sk
+        data_type: varchar
+        tests:
+          - not_null
+      - name: zip_code_prefix
+        data_type: varchar
+        tests:
+          - not_null
+      - name: city
+        data_type: varchar
+      - name: state
+        data_type: varchar
+      - name: latitude
+        data_type: float
+      - name: longitude
+        data_type: float
+      - name: region
+        data_type: varchar
+      - name: urbanization_level
+        data_type: varchar
+      - name: economic_zone
+        data_type: varchar
+      - name: valid_coordinates
+        data_type: boolean
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+      - name: distance_from_sao_paulo_km
+        data_type: float
+      - name: logistics_complexity
+        data_type: varchar
+      - name: data_quality_score
+        data_type: number
+      - name: occurrence_count
+        data_type: number
+      - name: dbt_loaded_at
+        data_type: timestamp_ntz
+      - name: dbt_invocation_id
+        data_type: varchar

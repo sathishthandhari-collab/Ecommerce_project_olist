@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: mart_fraud_monitoring
+    description: "Real-time fraud detection alerts and monitoring dashboard"
+    columns:
+      - name: alert_id
+        data_type: varchar
+        tests:
+          - not_null
+      - name: priority_level
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['P0 - Immediate', 'P1 - Urgent', 'P2 - High', 'P3 - Standard']
+      - name: risk_score
+        data_type: number
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: alert_status
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'FALSE_POSITIVE']
+
+  - name: mart_seller_management
+    description: "Seller performance management dashboard with intervention recommendations"
+    columns:
+      - name: seller_sk
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+      - name: health_tier
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Excellent', 'Good', 'Average', 'Below Average', 'Poor']
+      - name: management_priority_score
+        data_type: number
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: investment_recommendation
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Invest for Growth', 'Invest to Recover', 'Maintain Current Support', 'Consider Termination']
+
+  - name: mart_logistics_performance
+    description: "Logistics and delivery performance dashboard with regional analysis"
+    columns:
+      - name: report_date
+        data_type: date
+        tests:
+          - not_null
+      - name: delivery_performance_tier
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Excellent', 'Good', 'Average', 'Below Average', 'Poor']
+      - name: requires_immediate_attention
+        data_type: boolean
+        tests:
+          - not_null

@@ -1,0 +1,203 @@
+version: 2
+
+metrics:
+  # Revenue Metrics
+  - name: gross_merchandise_value
+    label: Gross Merchandise Value (GMV)
+    model: ref('mart_executive_kpis')
+    description: "Total value of orders placed on the platform"
+    calculation_method: sum
+    expression: metric_value
+    timestamp: report_date
+    time_grains: [day, week, month, quarter, year]
+    dimensions:
+      - metric_category
+      - report_year
+      - report_quarter
+    filters:
+      - field: metric_name
+        operator: '='
+        value: 'Total Revenue'
+        
+  - name: average_order_value
+    label: Average Order Value (AOV)  
+    model: ref('mart_executive_kpis')
+    description: "Average value per order"
+    calculation_method: average
+    expression: metric_value
+    timestamp: report_date
+    time_grains: [day, week, month, quarter]
+    dimensions:
+      - metric_category
+      - report_year
+    filters:
+      - field: metric_name
+        operator: '='
+        value: 'Average Order Value'
+        
+  # Customer Metrics
+  - name: active_customers
+    label: Active Customers (30 days)
+    model: ref('mart_executive_kpis')
+    description: "Customers who placed an order in the last 30 days"
+    calculation_method: sum
+    expression: metric_value
+    timestamp: report_date
+    time_grains: [day, week, month]
+    dimensions:
+      - metric_category
+    filters:
+      - field: metric_name
+        operator: '='
+        value: 'Active Customers'
+        
+  - name: churn_risk_customers
+    label: High Churn Risk Customers
+    model: ref('mart_executive_kpis')
+    description: "Customers with churn probability > 70%"
+    calculation_method: sum
+    expression: metric_value
+    timestamp: report_date
+    time_grains: [week, month]
+    filters:
+      - field: metric_name
+        operator: '='
+        value: 'High Churn Risk Customers'
+        
+  - name: customer_lifetime_value
+    label: Predicted Customer Lifetime Value
+    model: ref('int_customer_lifetime_value')
+    description: "Average predicted CLV for high confidence customers"
+    calculation_method: average
+    expression: predicted_clv
+    timestamp: dbt_loaded_at
+    time_grains: [month, quarter]
+    dimensions:
+      - clv_segment
+      - customer_state
+      - region
+    filters:
+      - field: prediction_confidence
+        operator: '='
+        value: 'High Confidence'
+        
+  # Operational Excellence Metrics  
+  - name: seller_health_score
+    label: Average Seller Health Score
+    model: ref('mart_executive_kpis')
+    description: "Platform-wide seller health score"
+    calculation_method: average
+    expression: metric_value
+    timestamp: report_date
+    time_grains: [week, month]
+    filters:
+      - field: metric_name
+        operator: '='
+        value: 'Seller Health Score (Average)'
+        
+  - name: on_time_delivery_rate
+    label: On-Time Delivery Rate
+    model: ref('mart_logistics_performance')
+    description: "Percentage of orders delivered on time"
+    calculation_method: average
+    expression: customer_experienced_on_time_rate
+    timestamp: report_date
+    time_grains: [day, week, month]
+    dimensions:
+      - region
+      - state
+      - delivery_performance_tier
+        
+  # Risk Management Metrics
+  - name: critical_anomalies
+    label: Critical Order Anomalies
+    model: ref('mart_executive_kpis')
+    description: "Orders flagged with critical anomaly severity"
+    calculation_method: sum
+    expression: metric_value
+    timestamp: report_date
+    time_grains: [day, week, month]
+    filters:
+      - field: metric_name
+        operator: '='
+        value: 'Critical Anomalies Detected'
+        
+  - name: fraud_detection_rate
+    label: Fraud Detection Rate
+    model: ref('mart_fraud_monitoring')
+    description: "Percentage of orders flagged for fraud review"
+    calculation_method: count_distinct
+    expression: alert_id
+    timestamp: alert_date
+    time_grains: [day, week, month]
+    dimensions:
+      - priority_level
+      - alert_type
+      - region
+      
+  # Customer Acquisition & Retention
+  - name: new_customers
+    label: New Customer Acquisitions
+    model: ref('int_customer_360')
+    description: "Customers making their first purchase"
+    calculation_method: count_distinct
+    expression: customer_sk
+    timestamp: first_order_date
+    time_grains: [day, week, month, quarter]
+    dimensions:
+      - region
+      - customer_state
+      - lifecycle_stage
+    filters:
+      - field: lifecycle_stage
+        operator: '='
+        value: 'New Customer'
+
+# Metric exposures for BI tools
+exposures:
+  - name: executive_kpi_dashboard
+    label: Executive KPI Dashboard
+    type: dashboard
+    maturity: high
+    url: https://looker.company.com/dashboards/executive_kpis
+    description: >
+      C-level dashboard showing key business metrics including GMV, 
+      customer acquisition, operational performance, and risk indicators
+    depends_on:
+      - metric('gross_merchandise_value')
+      - metric('active_customers')
+      - metric('seller_health_score')
+      - metric('critical_anomalies')
+    owner:
+      name: Chief Operating Officer
+      email: coo@olist.com
+      
+  - name: customer_analytics_dashboard  
+    label: Customer Analytics Dashboard
+    type: dashboard
+    maturity: high
+    description: >
+      Customer-focused analytics including CLV analysis, churn prediction,
+      and lifecycle management for marketing and customer success teams
+    depends_on:
+      - metric('customer_lifetime_value')
+      - metric('churn_risk_customers')
+      - metric('new_customers')
+    owner:
+      name: VP Marketing
+      email: vp.marketing@olist.com
+      
+  - name: operational_performance_dashboard
+    label: Operational Performance Dashboard  
+    type: dashboard
+    maturity: medium
+    description: >
+      Operations team dashboard for monitoring delivery performance,
+      seller health, and fraud detection metrics
+    depends_on:
+      - metric('on_time_delivery_rate')
+      - metric('fraud_detection_rate')
+      - metric('seller_health_score')
+    owner:
+      name: Head of Operations
+      email: operations@olist.com

@@ -1,0 +1,4 @@
+dbt-fusion 2.0.0-preview.33
+   Loading ~/.dbt/profiles.yml
+error: dbt1001: Profile 'default' not found in profiles.yml
+  Finished 'compile'  with 1 error in 21ms

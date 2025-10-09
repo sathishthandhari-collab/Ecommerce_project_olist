@@ -1,0 +1,167 @@
+version: 2
+
+models:
+  - name: mart_executive_kpis
+    description: "Executive-level KPI dashboard with trend analysis and alerts"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: report_date
+        data_type: date
+        tests:
+          - not_null
+      - name: report_year
+        data_type: number
+      - name: report_month
+        data_type: number
+      - name: report_quarter
+        data_type: number
+      - name: metric_category
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Financial Performance', 'Customer Performance', 'Operational Excellence', 'Risk Management']
+      - name: metric_name
+        data_type: varchar
+        tests:
+          - not_null
+      - name: metric_value
+        data_type: float
+        tests:
+          - not_null
+      - name: contributing_entities
+        data_type: number
+      - name: avg_entity_value
+        data_type: float
+      - name: metric_volatility
+        data_type: float
+      - name: metric_value_change
+        data_type: float
+      - name: metric_value_change_pct
+        data_type: float
+      - name: metric_3month_avg
+        data_type: float
+      - name: metric_12month_avg
+        data_type: float
+      - name: metric_lower_ci
+        data_type: float
+      - name: metric_upper_ci
+        data_type: float
+      - name: performance_indicator
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Strong Growth', 'Growth', 'Stable', 'Declining', 'Critical Decline']
+      - name: alert_status
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Normal', 'Revenue Decline Alert', 'Risk Spike Alert', 'Churn Risk Alert']
+      - name: data_confidence_level
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['High', 'Medium', 'Low']
+      - name: last_updated
+        data_type: timestamp_tz
+      - name: dbt_invocation_id
+        data_type: varchar
+
+  - name: mart_customer_strategy
+    description: "Customer strategy dashboard with CLV segments and investment priorities"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: report_date
+        data_type: date
+        tests:
+          - not_null
+      - name: region
+        data_type: varchar
+      - name: regional_strategy
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Premium Market - High Investment', 'Growth Market - Scaled Investment', 'Maintenance Market - Efficient Operations', 'Harvest Market - Cost Optimization']
+      - name: regional_dominant_segment
+        data_type: varchar
+      - name: clv_segment
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Very High Value', 'High Value', 'Medium Value', 'Low Value', 'Very Low Value']
+      - name: lifecycle_stage
+        data_type: varchar
+      - name: investment_priority
+        data_type: varchar
+      - name: customer_count
+        data_type: number
+      - name: active_customers
+        data_type: number
+      - name: active_customer_rate
+        data_type: float
+      - name: total_historical_revenue
+        data_type: float
+      - name: total_predicted_clv
+        data_type: float
+      - name: total_future_value_potential
+        data_type: float
+      - name: avg_predicted_clv
+        data_type: float
+      - name: avg_historical_spend
+        data_type: float
+      - name: roi_potential_multiplier
+        data_type: float
+      - name: avg_churn_probability
+        data_type: float
+      - name: churn_risk_rate
+        data_type: float
+      - name: engagement_rate
+        data_type: float
+      - name: avg_days_since_last_order
+        data_type: number
+      - name: strategic_recommendation
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Retention - VIP Treatment', 'Urgent Intervention - Save High Value', 'Growth - Increase Engagement', 'Reactivation Campaign - Last Chance', 'Monitor - Standard Treatment']
+      - name: investment_priority_score
+        data_type: number
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: ready_for_engagement_campaigns
+        data_type: boolean
+      - name: needs_retention_campaigns
+        data_type: boolean
+      - name: high_prediction_confidence
+        data_type: boolean
+      - name: clv_rank_in_region
+        data_type: number
+      - name: volume_rank_in_region
+        data_type: number
+      - name: executive_alert
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['CRITICAL: High-value churn risk', 'OPPORTUNITY: Underengaged growth segment', 'OPPORTUNITY: High ROI potential', 'STABLE']
+      - name: last_updated
+        data_type: timestamp_tz
+      - name: dbt_invocation_id
+        data_type: varchar
