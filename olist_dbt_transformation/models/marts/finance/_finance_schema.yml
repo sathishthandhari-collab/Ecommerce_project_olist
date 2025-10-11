@@ -178,7 +178,7 @@ models:
           - not_null
       - name: gross_revenue
         data_type: float
-        tests:
+        # tests:
           # - not_null
       - name: shipping_revenue
         data_type: float
@@ -206,7 +206,7 @@ models:
       - name: profit_per_order
         data_type: float
         description: "Estimated gross profit per order"
-        tests:
+        # tests:
           # - not_null
       - name: profit_per_customer
         data_type: float
