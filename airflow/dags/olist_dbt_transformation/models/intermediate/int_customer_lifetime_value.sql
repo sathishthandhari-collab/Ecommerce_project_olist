@@ -48,9 +48,10 @@ clv_calculations AS (
         total_spent AS historical_clv,
         
         -- Predicted CLV components
-        avg_order_value * 
-        (CASE WHEN customer_lifespan_days > 0 THEN (total_orders::FLOAT / customer_lifespan_days) * 365 ELSE total_orders END) * 
-        (CASE WHEN churn_probability > 0 THEN -1 / LN(churn_probability) / 365 ELSE 3 END) AS predicted_clv_base
+        avg_order_value *
+            (total_orders / NULLIF(customer_lifespan_days, 0) * 365) *
+            (1 / ( -LN(1 - LEAST(GREATEST(churn_probability, 1e-6), 0.999999)) * 365 )) AS predicted_clv_base
+
 
     FROM customer_base
 ),

@@ -122,13 +122,15 @@ lifecycle_analysis AS (
         END AS lifecycle_stage,
         
         -- Churn probability (simplified logistic regression approach)
-        1 / (1 + EXP(-(
-            -2.5 +  -- Intercept
-            (days_since_last_order * 0.01) +  -- Recency factor
-            (total_orders * -0.3) +  -- Frequency factor  
-            (avg_review_score * -0.2) +  -- Satisfaction factor
-            (CASE WHEN on_time_delivery_rate < 0.8 THEN 1 ELSE 0 END * 0.5)  -- Experience factor
-        ))) AS churn_probability,
+            1 / (
+                1 + EXP(-(
+                    -2.5
+                    + (days_since_last_order * 0.01)
+                    + (total_orders * -0.3)
+                    + (avg_review_score * -0.2)
+                    + (CASE WHEN on_time_delivery_rate < 0.8 THEN 1 ELSE 0 END * 0.5)
+                ))
+        ) AS churn_probability,
         
         -- Next purchase prediction
         CASE 
