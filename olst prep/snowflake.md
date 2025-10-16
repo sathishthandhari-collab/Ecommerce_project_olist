@@ -1,6 +1,7 @@
 Below are 50 intermediate-to-advanced Snowflake questions and concise answers that cover the feature set Analytics Engineers most often use in practice .
 
-### Architecture & Warehousing1. **What is a virtual warehouse and how is it billed?**  
+### Architecture & Warehousing
+1. **What is a virtual warehouse and how is it billed?**  
    A virtual warehouse is an elastic cluster of compute nodes that executes queries, auto-suspends when idle, and is billed only while running, measured in per-second credits.2. **Explain multi-cluster warehouses and when to use them.**  
    Multi-cluster warehouses spin up additional clusters when queued queries exceed a threshold, providing concurrency without manual scaling and shutting extra clusters when demand falls.
 
@@ -28,7 +29,8 @@ Below are 50 intermediate-to-advanced Snowflake questions and concise answers th
 10. **How can you avoid duplicate loads with Snowpipe?**  
     Snowpipe tracks file names and paths; uploading a file twice with the same name will be ignored, preventing duplicate inserts.
 
-### Streams & Tasks11. **What problem do streams solve?**  
+### Streams & Tasks
+11. **What problem do streams solve?**  
     Streams capture CDC by recording inserts, updates, and deletes since the last offset, enabling incremental ELT pipelines.
 
 12. **Differentiate standard, append-only, and insert-only streams.**  
@@ -58,7 +60,8 @@ Below are 50 intermediate-to-advanced Snowflake questions and concise answers th
 20. **What security model applies to stages?**  
     Internal stages require READ privileges; external stages need USAGE plus credentials or storage integrations for secure access .
 
-### SQL & Transformation Features21. **Why is QUALIFY valuable in analytic queries?**  
+### SQL & Transformation Features
+21. **Why is QUALIFY valuable in analytic queries?**  
     QUALIFY filters after window functions, letting you rank or flag rows without subqueries, improving readability .
 
 22. **Show a query that keeps the latest record per surrogate key.**  
@@ -88,7 +91,8 @@ Below are 50 intermediate-to-advanced Snowflake questions and concise answers th
 30. **Why prefer CLUSTER BY over ORDER BY in CREATE TABLE AS?**  
     CLUSTER BY reorganizes micro-partitions for pruning at read time; ORDER BY only affects initial write ordering and may not persist through inserts.
 
-### Data Governance & Security31. **Describe Snowflake’s RBAC hierarchy.**  
+### Data Governance & Security
+31. **Describe Snowflake’s RBAC hierarchy.**  
     Grants flow from objects to roles to users; roles can inherit from other roles, supporting least-privilege design.
 
 32. **How do tags enable data classification?**  
@@ -133,7 +137,8 @@ Below are 50 intermediate-to-advanced Snowflake questions and concise answers th
 45. **How do replication and failover groups support DR?**  
     Replication copies databases and account objects cross-region; failover groups bundle objects with metadata, enabling controlled role-switch cut-over.
 
-### Performance & Cost Management46. **When does automatic clustering kick in?**  
+### Performance & Cost Management
+46. **When does automatic clustering kick in?**  
     If a table has a clustering key but auto-clustering is enabled, Snowflake service re-clusters partitions in the background based on micro-partition skew.
 
 47. **What are resource monitors?**  
