@@ -7,10 +7,12 @@ A comprehensive **end-to-end Analytics Engineering solution** for Olist's Brazil
 ## Project Navigation
 ```
 Ecommerce_Project_Olist
+├── .github
+│   └─ workflows                                  ## Github action workflows
 ├── Airflow
-│   ├── Dev, Prod, Monitoring dag scripts
+│   ├── Dev, Prod, Monitoring dag scripts         ## Airflow Dags
 │   ├── dags
-│   │   └── Olist_DBT_Transformation  <!--  --DBT PROJECT -->
+│   │   └── Olist_DBT_Transformation              ## DBT PROJECT
 │   │       ├── models
 │   │       │   ├── staging
 │   │       │   ├── intermediate
@@ -18,13 +20,14 @@ Ecommerce_Project_Olist
 │   │       ├── macros
 │   │       ├── snapshots
 │   │       ├── tests
-│   │       ├── project.yml
+│   │       └── project.yml
 │   │
 │   ├─ docker-compose.yaml
 │   ├─ Dockerfile
-│   ├─ Requirement.txt
+│   └─ Requirement.txt
 ├── LOAD
 ├── Readme.md
+└── Visuals
 ```
 
 ## 🏗️ Architecture & Data Lineage
