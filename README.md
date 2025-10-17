@@ -5,6 +5,7 @@
 A comprehensive **end-to-end Analytics Engineering solution** for Olist's Brazilian e-commerce marketplace data, implementing enterprise-grade data transformation patterns using **dbt Core**, **Snowflake**, **Apache Airflow**, and **GitHub Actions**. This project demonstrates advanced analytical capabilities including customer lifetime value prediction, fraud detection, executive KPIs, and **production-ready orchestration**.
 
 ## Project Navigation
+```
 Ecommerce_Project_Olist
 ├── Airflow
 │   ├── Dev, Prod, Monitoring dag scripts
@@ -24,7 +25,6 @@ Ecommerce_Project_Olist
 │   ├─ Requirement.txt
 ├── LOAD
 ├── Readme.md
-
 ```
 
 ## 🏗️ Architecture & Data Lineage
