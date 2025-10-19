@@ -36,6 +36,8 @@ Ecommerce_Project_Olist
 ```
 Daily Batch upload to S3
     ↓
+External Stage
+    ↓
 Raw Data Loaded to Snowflake tables via snowpipe
     ↓
 Transformed With DBT
